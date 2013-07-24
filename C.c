@@ -1,7 +1,7 @@
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <string.h> 
-#include <stdint.h>
+#include <time.h>
 
 const int TileDim=50;
 const int Miw=2;
@@ -100,6 +100,8 @@ void PrintLev(struct Lev *l){
 }
 
 int main(int argc, char* argv[]) {
+	clock_t start, stop;
+	start = clock();
 	int v = atoi(argv[1]);
 	printf("The random seed is: %d \n", v);
 	srand(v);
@@ -141,6 +143,9 @@ int main(int argc, char* argv[]) {
 		if(ls[i].lenrs>templ.lenrs) templ=ls[i];
 	}
 	PrintLev(&templ);
+	stop = clock();
+	long clocks_per_ms = CLOCKS_PER_SEC/1000;
+        printf("%d\n", (stop - start)/clocks_per_ms);
 
     return 0;
 }

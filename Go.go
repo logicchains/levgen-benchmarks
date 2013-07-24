@@ -3,6 +3,7 @@ package main
 import "fmt"
 import "flag"
 import "math/rand"
+import "time"
 
 const (
 	TileDim = 50
@@ -101,6 +102,7 @@ var vflag = flag.Int("v", 18, "Random Seed")
 var rng *rand.Rand
 
 func main() {
+	start := time.Now()
 	flag.Parse()
 	var v int = *vflag
 	fmt.Printf("Random seed: %v\n", v)
@@ -135,4 +137,6 @@ func main() {
 		}
 	}
 	PrintLev(&templ)
+ 	end := time.Now()
+        fmt.Printf("Time in ms: %d\n",(end.Sub(start)/1000000))
 }
