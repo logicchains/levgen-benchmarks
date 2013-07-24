@@ -1,6 +1,6 @@
 For best performance:
 The Rust benchmark is compiled with --opt-level=3, 
-DMD with -release -O -noboundscheck, 
+DMD with -release -O -noboundscheck -inline,  
 GHC with -O3 -funbox-strict-fields
 and the rest with -O3. 
 
