@@ -1,8 +1,12 @@
 package main
 
-import "fmt"
-import "flag"
-import "math/rand"
+import (
+	"flag"
+	"fmt"
+	"math/rand"
+	"os"
+	"runtime/pprof"
+)
 
 const (
 	TileDim = 50
@@ -50,28 +54,27 @@ func CheckColl(x, y, w, h int, rs []Room) bool {
 	return false
 }
 
-func MakeRoom(rs *[]Room) {
+func MakeRoom(rs []Room) []Room {
 	x := rand.Intn(TileDim)
 	y := rand.Intn(TileDim)
 	w := rand.Intn(MaxWid) + MinWid
 	h := rand.Intn(MaxWid) + MinWid
 
 	if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
-		return
+		return rs
 	}
-	iscrash := CheckColl(x, y, w, h, *rs)
+	iscrash := CheckColl(x, y, w, h, rs)
 	if iscrash == false {
-		var r Room
-		r.X = x
-		r.Y = y
-		r.W = w
-		r.H = h
-		r.N = len(*rs)
-		*rs = append(*rs, r)
+		rs = append(
+			rs,
+			Room{X: x, Y: y, W: w, H: h, N: len(rs)},
+		)
 	}
+
+	return rs
 }
 
-func Room2Tiles(r *Room, ts *[]Tile) {
+func Room2Tiles(r *Room, ts []Tile) {
 	x := r.X
 	y := r.Y
 	w := r.W
@@ -79,14 +82,14 @@ func Room2Tiles(r *Room, ts *[]Tile) {
 	for xi := x; xi <= x+w; xi++ {
 		for yi := y; yi <= y+h; yi++ {
 			num := yi*TileDim + xi
-			(*ts)[num].T = 1
+			ts[num].T = 1
 		}
 	}
 }
 
 func PrintLev(l *Lev) {
 	for i, t := range l.ts {
-		fmt.Printf("%v", t.T)
+		fmt.Printf("%d", t.T)
 		if i%(TileDim) == 49 && i != 0 {
 			fmt.Print("\n")
 		}
@@ -94,33 +97,52 @@ func PrintLev(l *Lev) {
 }
 
 var vflag = flag.Int("v", 18, "Random Seed")
+var cpuprof = flag.String("cpuprofile", "go.prof", "write cpu profile")
 
 func main() {
 	flag.Parse()
 	var v int = *vflag
-	fmt.Printf("Random seed: %v\n", v)
+	fmt.Printf("Random seed: %d\n", v)
+	if *cpuprof != "" {
+		f, err := os.Create(*cpuprof)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
 	rand.Seed(int64(v))
 	ls := make([]Lev, 0, 100)
 	for i := 0; i < 100; i++ {
 		rs := make([]Room, 0, 100)
 		for ii := 0; ii < 50000; ii++ {
-			MakeRoom(&rs)
+			rs = MakeRoom(rs)
 			if len(rs) == 99 {
 				break
 			}
 		}
 		ts := make([]Tile, 0, 2500)
 		for ii := 0; ii < 2500; ii++ {
-			t := Tile{X: ii % TileDim, Y: ii / TileDim, T: 0}
-			ts = append(ts, t)
+			ts = append(ts,
+				Tile{
+					X: ii % TileDim,
+					Y: ii / TileDim,
+					T: 0,
+				},
+			)
 		}
 		for _, r := range rs {
-			Room2Tiles(&r, &ts)
+			Room2Tiles(&r, ts)
 		}
-		var l Lev
-		l.rs = rs
-		l.ts = ts
-		ls = append(ls, l)
+		ls = append(
+			ls,
+			Lev{
+				rs: rs,
+				ts: ts,
+			},
+		)
 	}
 	templ := Lev{}
 	for i := 0; i < 100; i++ {
