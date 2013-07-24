@@ -1,13 +1,5 @@
 import scala.util.Random
 
-/**
- * Created with IntelliJ IDEA.
- * User: luft
- * Date: 7/24/13
- * Time: 12:52 PM
- */
-
-
 case class Tile(X: Int, Y: Int, var T: Int)
 
 case class Room(X: Int, Y: Int, W: Int, H: Int, N: Int)
@@ -23,12 +15,13 @@ object Main {
 
   def main(args: Array[String]) {
     println(s"The bench took ${time {
-      val v = args(args.indexOf("v")+1).toLong
+
+      val v = args(0).toLong
       println(s"The random seed is: $v")
       Random.setSeed(v)
 
       val ls = for(l <- 0 until 100) yield {
-        val rs = rooms(Stream.empty).take(Random.nextInt(5) + 94).toArray
+        val rs = rooms(Stream.empty).take(99).toArray
         val ts = new Array[Tile](2500)
         for(i <- 0 until 2500) {
           ts(i) = Tile(i % TileDim, i/TileDim, 0)
@@ -37,6 +30,7 @@ object Main {
         Lev(rs,ts)
       }
       printLev(ls sortBy(_.rs.length) head)
+
     }} ms")
   }
 
