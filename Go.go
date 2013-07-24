@@ -47,10 +47,10 @@ func CheckColl(x, y, w, h int, rs []Room) bool {
 }
 
 func MakeRoom(rs *[]Room) {
-	x := rand.Intn(TileDim)
-	y := rand.Intn(TileDim)
-	w := rand.Intn(MaxWid) + MinWid
-	h := rand.Intn(MaxWid) + MinWid
+	x := rng.Intn(TileDim)
+	y := rng.Intn(TileDim)
+	w := rng.Intn(MaxWid) + MinWid
+	h := rng.Intn(MaxWid) + MinWid
 
 	if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
 		return
@@ -90,12 +90,13 @@ func PrintLev(l *Lev) {
 }
 
 var vflag = flag.Int("v", 18, "Random Seed")
+var rng *rand.Rand
 
 func main() {
 	flag.Parse()
 	var v int = *vflag
 	fmt.Printf("Random seed: %v\n", v)
-	rand.Seed(int64(v))
+	rng = rand.New(rand.NewSource(int64(v)))
 	ls := make([]Lev, 0, 100)
 	for i := 0; i < 100; i++ {
 		rs := make([]Room, 0, 100)
