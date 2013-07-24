@@ -30,28 +30,36 @@ type Lev struct {
 	rs []Room
 }
 
+func GenRand(gen *uint32) int{ 
+	*gen += *gen
+        *gen ^= 1
+        if int32(*gen) < 0 {
+              *gen ^= 0x88888eef
+         }
+	a := *gen
+	return int(a)
+}
+
 func CheckColl(x, y, w, h int, rs []Room) bool {
-	for _, r := range rs {
-		RoomOkay := true
-		if ((r.X + r.W + 1) < x) || (r.X > (x + w + 1)) {
-			RoomOkay = true
-		} else if ((r.Y + r.H + 1) < y) || (r.Y > (y + h + 1)) {
-			RoomOkay = true
-		} else {
-			RoomOkay = false
+	var r *Room
+	for i := range rs {
+		r = &rs[i]
+		if ((r.X + r.W + 1) < x || r.X > (x + w + 1)) {
+			continue
 		}
-		if RoomOkay == false {
-			return true
+		if ((r.Y + r.H + 1) < y || r.Y > (y + h + 1)) {
+			continue
 		}
+		return true
 	}
 	return false
 }
 
-func MakeRoom(rs *[]Room) {
-	x := rng.Intn(TileDim)
-	y := rng.Intn(TileDim)
-	w := rng.Intn(MaxWid) + MinWid
-	h := rng.Intn(MaxWid) + MinWid
+func MakeRoom(rs *[]Room,gen *uint32) {
+	x := GenRand(gen)%TileDim
+	y := GenRand(gen)%TileDim
+	w := GenRand(gen)%MaxWid + MinWid
+	h := GenRand(gen)%MaxWid + MinWid
 
 	if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
 		return
@@ -99,11 +107,12 @@ func main() {
 	var v int = *vflag
 	fmt.Printf("Random seed: %v\n", v)
 	rng = rand.New(rand.NewSource(int64(v)))
+	gen := ^uint32(v)
 	ls := make([]Lev, 0, 100)
 	for i := 0; i < 100; i++ {
 		rs := make([]Room, 0, 100)
 		for ii := 0; ii < 50000; ii++ {
-			MakeRoom(&rs)
+			MakeRoom(&rs,&gen)
 			if len(rs) == 99 {
 				break
 			}

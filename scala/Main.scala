@@ -20,7 +20,7 @@ object Main {
       println(s"The random seed is: $v")
       Random.setSeed(v)
 
-      val ls = for(l <- 0 until 100) yield {
+      val ls = for(l <- 0 until 1000) yield {
         val rs = rooms(Stream.empty).take(99).toArray
         val ts = new Array[Tile](2500)
         for(i <- 0 until 2500) {

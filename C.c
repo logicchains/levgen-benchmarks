@@ -27,6 +27,19 @@ struct Lev{
 	int lenrs;
 };
 
+int GenRand(uint32_t *gen) { 
+	*gen += *gen;
+        *gen ^= 1;
+	int32_t tgen=*gen;
+        if ( tgen < 0) {
+              *gen ^= 0x88888eef;
+         }
+	int a = *gen;
+	return a;
+}
+
+
+
 int CheckColl(int x,int y,int w,int h, struct Room rs[100], int lenrs){
 	int i=0;
 	for(i=0;i<lenrs;i++){
@@ -43,12 +56,12 @@ int CheckColl(int x,int y,int w,int h, struct Room rs[100], int lenrs){
 	return 0;
 }
 
-void MakeRoom(struct Room rs[100], int *lenrs){
-	int x = rand() % TileDim;
-	int y = rand() % TileDim;
-	int w = rand() % MaxWid+Miw;
-	int h = rand() % MaxWid+Miw;
-	
+void MakeRoom(struct Room rs[100], int *lenrs,uint32_t *gen){
+	int x = GenRand(gen) % TileDim;
+	int y = GenRand(gen) % TileDim;
+	int w = GenRand(gen) % MaxWid+Miw;
+	int h = GenRand(gen) % MaxWid+Miw;
+
 	if(x+w>=TileDim || y+h>=TileDim || x==0 || y==0) return;
 	int nocrash = CheckColl(x,y,w,h,rs,*lenrs);
 	if (nocrash==0){
@@ -92,6 +105,8 @@ int main(int argc, char* argv[]) {
 	int v = atoi(argv[1]);
 	printf("The random seed is: %d \n", v);
 	srand(v);
+	uint32_t gen = v;
+	uint32_t *Pgen= &gen;
 	int i;
 	struct Lev ls[100];
 	int lenLS=0;
@@ -101,7 +116,7 @@ int main(int argc, char* argv[]) {
 		int *Plenrs = &lenrs;
 		int ii;
 		for (ii=0;ii<50000;ii++){
-			MakeRoom(rs,Plenrs);
+			MakeRoom(rs,Plenrs,Pgen);
 			if(lenrs==99){ 
 				break;
 			}
@@ -127,10 +142,10 @@ int main(int argc, char* argv[]) {
 	for(i=0;i<100;i++){
 		if(ls[i].lenrs>templ.lenrs) templ=ls[i];
 	}
-	PrintLev(&templ);	
+	PrintLev(&templ);
 	stop = clock();
 	long clocks_per_ms = CLOCKS_PER_SEC/1000;
         printf("%d\n", (stop - start)/clocks_per_ms);
+
+    return 0;
 }
-
-
