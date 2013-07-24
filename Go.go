@@ -35,14 +35,10 @@ type Lev struct {
 
 func CheckColl(x, y, w, h int, rs []Room) bool {
 	for _, r := range rs {
-		rx := r.X
-		ry := r.Y
-		rw := r.W
-		rh := r.H
 		RoomOkay := true
-		if ((rx + rw + 1) < x) || (rx > (x + w + 1)) {
+		if ((r.X + r.W + 1) < x) || (r.X > (x + w + 1)) {
 			RoomOkay = true
-		} else if ((ry + rh + 1) < y) || (ry > (y + h + 1)) {
+		} else if ((r.Y + r.H + 1) < y) || (r.Y > (y + h + 1)) {
 			RoomOkay = true
 		} else {
 			RoomOkay = false
@@ -55,10 +51,10 @@ func CheckColl(x, y, w, h int, rs []Room) bool {
 }
 
 func MakeRoom(rs []Room) []Room {
-	x := rand.Intn(TileDim)
-	y := rand.Intn(TileDim)
-	w := rand.Intn(MaxWid) + MinWid
-	h := rand.Intn(MaxWid) + MinWid
+	x := rng.Intn(TileDim)
+	y := rng.Intn(TileDim)
+	w := rng.Intn(MaxWid) + MinWid
+	h := rng.Intn(MaxWid) + MinWid
 
 	if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
 		return rs
@@ -67,7 +63,13 @@ func MakeRoom(rs []Room) []Room {
 	if iscrash == false {
 		rs = append(
 			rs,
-			Room{X: x, Y: y, W: w, H: h, N: len(rs)},
+			Room{
+				X: x,
+				Y: y,
+				W: w,
+				H: h,
+				N: len(rs),
+			},
 		)
 	}
 
@@ -97,12 +99,11 @@ func PrintLev(l *Lev) {
 }
 
 var vflag = flag.Int("v", 18, "Random Seed")
+var rng *rand.Rand
 var cpuprof = flag.String("cpuprofile", "go.prof", "write cpu profile")
 
 func main() {
 	flag.Parse()
-	var v int = *vflag
-	fmt.Printf("Random seed: %d\n", v)
 	if *cpuprof != "" {
 		f, err := os.Create(*cpuprof)
 		if err != nil {
@@ -113,7 +114,9 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	rand.Seed(int64(v))
+	var v int = *vflag
+	fmt.Printf("Random seed: %d\n", v)
+	rng = rand.New(rand.NewSource(int64(v)))
 	ls := make([]Lev, 0, 100)
 	for i := 0; i < 100; i++ {
 		rs := make([]Room, 0, 100)
