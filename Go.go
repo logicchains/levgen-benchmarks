@@ -1,12 +1,8 @@
 package main
 
-import (
-	"flag"
-	"fmt"
-	"math/rand"
-	"os"
-	"runtime/pprof"
-)
+import "fmt"
+import "flag"
+import "math/rand"
 
 const (
 	TileDim = 50
@@ -33,50 +29,53 @@ type Lev struct {
 	rs []Room
 }
 
+func GenRand(gen *uint32) int{ 
+	*gen += *gen
+        *gen ^= 1
+        if int32(*gen) < 0 {
+              *gen ^= 0x88888eef
+         }
+	a := *gen
+	return int(a)
+}
+
 func CheckColl(x, y, w, h int, rs []Room) bool {
-	for _, r := range rs {
-		RoomOkay := true
-		if ((r.X + r.W + 1) < x) || (r.X > (x + w + 1)) {
-			RoomOkay = true
-		} else if ((r.Y + r.H + 1) < y) || (r.Y > (y + h + 1)) {
-			RoomOkay = true
-		} else {
-			RoomOkay = false
+	var r *Room
+	for i := range rs {
+		r = &rs[i]
+		if ((r.X + r.W + 1) < x || r.X > (x + w + 1)) {
+			continue
 		}
-		if RoomOkay == false {
-			return true
+		if ((r.Y + r.H + 1) < y || r.Y > (y + h + 1)) {
+			continue
 		}
+		return true
 	}
 	return false
 }
 
-func MakeRoom(rs []Room) []Room {
-	x := rng.Intn(TileDim)
-	y := rng.Intn(TileDim)
-	w := rng.Intn(MaxWid) + MinWid
-	h := rng.Intn(MaxWid) + MinWid
+func MakeRoom(rs *[]Room,gen *uint32) {
+	x := GenRand(gen)%TileDim
+	y := GenRand(gen)%TileDim
+	w := GenRand(gen)%MaxWid + MinWid
+	h := GenRand(gen)%MaxWid + MinWid
 
 	if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
-		return rs
+		return
 	}
-	iscrash := CheckColl(x, y, w, h, rs)
+	iscrash := CheckColl(x, y, w, h, *rs)
 	if iscrash == false {
-		rs = append(
-			rs,
-			Room{
-				X: x,
-				Y: y,
-				W: w,
-				H: h,
-				N: len(rs),
-			},
-		)
+		var r Room
+		r.X = x
+		r.Y = y
+		r.W = w
+		r.H = h
+		r.N = len(*rs)
+		*rs = append(*rs, r)
 	}
-
-	return rs
 }
 
-func Room2Tiles(r *Room, ts []Tile) {
+func Room2Tiles(r *Room, ts *[]Tile) {
 	x := r.X
 	y := r.Y
 	w := r.W
@@ -84,14 +83,14 @@ func Room2Tiles(r *Room, ts []Tile) {
 	for xi := x; xi <= x+w; xi++ {
 		for yi := y; yi <= y+h; yi++ {
 			num := yi*TileDim + xi
-			ts[num].T = 1
+			(*ts)[num].T = 1
 		}
 	}
 }
 
 func PrintLev(l *Lev) {
 	for i, t := range l.ts {
-		fmt.Printf("%d", t.T)
+		fmt.Printf("%v", t.T)
 		if i%(TileDim) == 49 && i != 0 {
 			fmt.Print("\n")
 		}
@@ -100,52 +99,34 @@ func PrintLev(l *Lev) {
 
 var vflag = flag.Int("v", 18, "Random Seed")
 var rng *rand.Rand
-var cpuprof = flag.String("cpuprofile", "go.prof", "write cpu profile")
 
 func main() {
 	flag.Parse()
-	if *cpuprof != "" {
-		f, err := os.Create(*cpuprof)
-		if err != nil {
-			fmt.Printf("%v\n", err)
-			os.Exit(1)
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
-	}
-
 	var v int = *vflag
-	fmt.Printf("Random seed: %d\n", v)
+	fmt.Printf("Random seed: %v\n", v)
 	rng = rand.New(rand.NewSource(int64(v)))
+	gen := ^uint32(v)
 	ls := make([]Lev, 0, 100)
 	for i := 0; i < 100; i++ {
 		rs := make([]Room, 0, 100)
 		for ii := 0; ii < 50000; ii++ {
-			rs = MakeRoom(rs)
+			MakeRoom(&rs,&gen)
 			if len(rs) == 99 {
 				break
 			}
 		}
 		ts := make([]Tile, 0, 2500)
 		for ii := 0; ii < 2500; ii++ {
-			ts = append(ts,
-				Tile{
-					X: ii % TileDim,
-					Y: ii / TileDim,
-					T: 0,
-				},
-			)
+			t := Tile{X: ii % TileDim, Y: ii / TileDim, T: 0}
+			ts = append(ts, t)
 		}
 		for _, r := range rs {
-			Room2Tiles(&r, ts)
+			Room2Tiles(&r, &ts)
 		}
-		ls = append(
-			ls,
-			Lev{
-				rs: rs,
-				ts: ts,
-			},
-		)
+		var l Lev
+		l.rs = rs
+		l.ts = ts
+		ls = append(ls, l)
 	}
 	templ := Lev{}
 	for i := 0; i < 100; i++ {
