@@ -31,14 +31,10 @@ type Lev struct {
 
 func CheckColl(x, y, w, h int, rs []Room) bool {
 	for _, r := range rs {
-		rx := r.X
-		ry := r.Y
-		rw := r.W
-		rh := r.H
 		RoomOkay := true
-		if ((rx + rw + 1) < x) || (rx > (x + w + 1)) {
+		if ((r.X + r.W + 1) < x) || (r.X > (x + w + 1)) {
 			RoomOkay = true
-		} else if ((ry + rh + 1) < y) || (ry > (y + h + 1)) {
+		} else if ((r.Y + r.H + 1) < y) || (r.Y > (y + h + 1)) {
 			RoomOkay = true
 		} else {
 			RoomOkay = false
