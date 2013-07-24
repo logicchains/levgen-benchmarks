@@ -1,6 +1,6 @@
 import std.getopt;
 import std.stdio;
-import std.random;
+import std.c.stdlib;
 
 immutable int TileDim=50;
 immutable int MinWid=2;
@@ -10,7 +10,7 @@ void main(string[] args) {
 	int v;	
 	getopt(args, "v", &v);
 	writefln("The random seed is: %s",v);
-	rndGen.seed(v);
+	srand(v);
 	Lev[100] ls;
 	foreach (ref l; ls) {
 		Room[100] rs;
@@ -88,11 +88,10 @@ int CheckColl(int x,int y,int w,int h, Room* rs, const int lenrs){
 }
 
 int MakeRoom(Room* rs, int lenrs){
-	immutable int x = uniform(0,TileDim);
-	immutable int y = uniform(0,TileDim);
-	immutable int w = uniform(MinWid,MaxWid);
-	immutable int h = uniform(MinWid,MaxWid);
-
+	immutable int x = rand()%TileDim;
+	immutable int y = rand()%TileDim;
+	immutable int w = rand()%MaxWid+MinWid;
+	immutable int h = rand()%MaxWid+MinWid;;
 	if(x+w>=TileDim || y+h>=TileDim || x==0 || y==0) return lenrs;
 	int nocrash = CheckColl(x,y,w,h,rs,lenrs);
 	if (nocrash==0){
