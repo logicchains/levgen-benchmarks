@@ -4,7 +4,8 @@ import Data.Ord (comparing)
 import System.Environment
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as U
-import System.Random.MWC
+import System.Random
+import Random.Xorshift
 
 type Pos = (Int,Int)
 type RandInts = U.Vector Int
@@ -85,7 +86,7 @@ main = do
     (v:_) <- getArgs
     putStr "The random seed is: "
     putStrLn v
-    withSystemRandom . asGenIO $ \ gen -> do
-        rands <- uniformVector gen 10000000
-        let (levs, _) = genLevs' 100 V.empty rands
-        putStr $ showTiles $ lTiles $ biggestLev levs
+    gen <- newXorshift
+    let rands = U.unfoldrN 10000000 (Just . next) gen
+    let (levs, _) = genLevs' 100 V.empty rands
+    putStr $ showTiles $ lTiles $ biggestLev levs
