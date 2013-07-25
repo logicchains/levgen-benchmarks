@@ -39,10 +39,10 @@ genRooms !n randInts rsDone =
     noFit    = genRooms (n-1) (restInts) rsDone
     tr       = Room {rPos=(x,y), rw= w, rh= h}
     x        = rem (U.unsafeHead randInts) levDim
-    y        = rem (U.unsafeIndex randInts 2) levDim
+    y        = rem (U.unsafeIndex randInts 1) levDim
     restInts = U.unsafeDrop 2 randInts
     w        = rem (U.unsafeHead randInts) maxWid + minWid
-    h        = rem (U.unsafeIndex randInts 2) maxWid + minWid
+    h        = rem (U.unsafeIndex randInts 1) maxWid + minWid
 
 checkBound :: Room -> Bool
 checkBound Room { rPos = (x,y), rw = w, rh = h } =
