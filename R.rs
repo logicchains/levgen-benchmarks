@@ -1,5 +1,4 @@
-use std::rand::{Rng, RngUtil};
-use std::{rand, os, int, uint, vec};
+use std::{os, int, uint, vec};
 
 static TileDim: uint = 50;
 static MinWid: uint  = 2;
@@ -11,21 +10,10 @@ fn main() {
     let v = int::from_str(str).get_or_default(18);
     println(fmt!("The random seed is: %?",v));
 
-    let vstr = int::to_str(v);
-    let vbytes = vstr.as_bytes_with_null_consume();
-//    let mut rng = rand::IsaacRng::new_seeded(vbytes);
-
-    let (a,b,c,d) = match vbytes {
-        [] => fail!("no seed"),
-        [a] => (a,a,a,a),
-        [a,b] => (a,b,a,b),
-        [a,b,c] => (a,b,c,a),
-        [a,b,c,d, .. _] => (a,b,c,d)
-    };
-    let mut rng = rand::XorShiftRng::new_seeded(a as u32,b as u32,c as u32,d as u32);
+    let mut prng = v.to_u32();
 
     let ls: ~[Lev] = do vec::from_fn(100) |_| {
-        let rs = rooms(&mut rng, 99);
+        let rs = rooms(99,&mut prng);
         let mut ts: ~[Tile] = do vec::from_fn(TileDim * TileDim) |ii| {
             Tile {
                 x: ii % TileDim,
@@ -68,13 +56,13 @@ fn find_most_rooms<'a>(ls: &'a [Lev]) -> &'a Lev {
     }.expect("oops, no levels")
 }
 
-fn rooms<R: Rng>(rng: &mut R, n: uint) -> ~[Room] {
+fn rooms(n: uint,gen:&mut u32) -> ~[Room] {
     let mut rooms = vec::with_capacity(n);
     for 50000.times {
-        let x = rng.gen_uint_range(0, TileDim);
-        let y = rng.gen_uint_range(0, TileDim);
-        let w = rng.gen_uint_range(MinWid, MaxWid);
-        let h = rng.gen_uint_range(MinWid, MaxWid);
+        let x = GenRand(gen)%TileDim;
+        let y = GenRand(gen)%TileDim;
+        let w = GenRand(gen)%MaxWid + MinWid;
+        let h = GenRand(gen)%MaxWid + MinWid;
         if x + w < TileDim &&
            y + h < TileDim &&
            x != 0 &&
@@ -117,4 +105,13 @@ fn print_lev(l: &Lev) {
             print("\n");
         }
     }
+}
+
+fn GenRand(gen:&mut u32) ->uint { 
+    *gen += *gen;
+    *gen ^= 1;
+	if (*gen).to_i32() < 0 {
+        *gen ^= 0x88888eef;
+    }
+	return (*gen).to_uint();
 }
