@@ -27,7 +27,7 @@ pure nothrow {
         else if ((r.y + r.h + 1) < y || r.y > (y + h + 1))
             roomOK = true;
         else
-            roomOK = false;
+            roomOK = false; 
         if (!roomOK)
             return true;
     }

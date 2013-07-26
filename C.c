@@ -2,6 +2,7 @@
 #include <stdio.h> 
 #include <string.h> 
 #include <time.h>
+#include <stdint.h>
 
 const int TileDim=50;
 const int Miw=2;
@@ -145,7 +146,7 @@ int main(int argc, char* argv[]) {
 	PrintLev(&templ);
 	stop = clock();
 	long clocks_per_ms = CLOCKS_PER_SEC/1000;
-        printf("%d\n", (stop - start)/clocks_per_ms);
+        printf("%ld\n", (stop - start)/clocks_per_ms);
 
     return 0;
 }

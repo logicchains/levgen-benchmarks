@@ -1,4 +1,8 @@
-.PHONY: go gccgo gcc clang clean
+.PHONY: go gccgo gcc clang gxx clangxx clean
+
+all: clean go gccgo gcc clang gxx clangxx
+	@echo ""
+
 
 go: Go.go
 	@echo ""
@@ -20,5 +24,15 @@ clang: C.c
 	clang -o run-clang -O3 C.c
 	time (./run-clang 1234 &> /dev/null)
 
+gxx: CPP.cpp
+	@echo ""
+	g++ -o run-gxx -O3 CPP.cpp
+	time (./run-gxx 1234 &> /dev/null)
+
+clangxx: CPP.cpp
+	@echo ""
+	clang++ -o run-clangxx -O3 CPP.cpp
+	time (./run-clangxx 1234 &> /dev/null)
+
 clean:
-	rm -f run-gcgo run-gccgo run-gcc run-clang
+	rm -f run-gcgo run-gccgo run-gcc run-clang run-gxx run-clangxx
