@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
 
     stop = clock();
     long clocks_per_ms = CLOCKS_PER_SEC/1000;
-    printf("%d\n", (stop - start)/clocks_per_ms);
+    printf("%ld\n", (stop - start)/clocks_per_ms);
 
     return 0;
 }
