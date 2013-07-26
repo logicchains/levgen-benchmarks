@@ -2,12 +2,10 @@ case class Tile(X: Int, Y: Int, var T: Int)
 
 case class Room(X: Int, Y: Int, W: Int, H: Int)
 
-case class CD(X: Int, Y: Int, L: Int, vert: Int)
-
 case class Lev(rs: Array[Room], ts: Array[Tile])
 
 case class Xorshift32(var seed: Int) {
-  def nextInt = {
+  final def nextInt = {
     seed ^= seed << 13
     seed ^= seed >>> 17
     seed ^= seed << 5
@@ -54,12 +52,17 @@ object Main {
     System.currentTimeMillis() - start
   }
 
+  @inline
+  final def myAbs(n: Int) = {
+    val mask = n >> 31
+    (mask ^ n) - mask
+  }
 
   def makeRoom(rooms: Stream[Room]): Room = { //recursive, so result type must be specified
-    val x: Int = math.abs(rand.nextInt%TileDim)
-    val y = math.abs(rand.nextInt%TileDim)
-    val w = math.abs(rand.nextInt%MaxWid+MinWid)
-    val h = math.abs(rand.nextInt%MaxWid+MinWid)
+    val x = myAbs(rand.nextInt%TileDim)
+    val y = myAbs(rand.nextInt%TileDim)
+    val w = myAbs(rand.nextInt%MaxWid+MinWid)
+    val h = myAbs(rand.nextInt%MaxWid+MinWid)
     if(x+w>=TileDim || y+h>=TileDim || x==0 || y==0)
       makeRoom(rooms)
     else if(!checkColl(x,y,w,h,rooms)) {
