@@ -56,28 +56,31 @@ func CheckColl(x, y, w, h int, rs []Room) bool {
 	return false
 }
 
-func MakeRoom(rs *[]Room, gen *uint32) {
+func MakeRoom(rs []Room, gen *uint32) []Room {
 	x := GenRand(gen) % TileDim
 	y := GenRand(gen) % TileDim
 	w := GenRand(gen)%MaxWid + MinWid
 	h := GenRand(gen)%MaxWid + MinWid
 
 	if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
-		return
+		return rs
 	}
-	iscrash := CheckColl(x, y, w, h, *rs)
-	if iscrash == false {
-		var r Room
-		r.X = x
-		r.Y = y
-		r.W = w
-		r.H = h
-		r.N = len(*rs)
-		*rs = append(*rs, r)
+	collides := CheckColl(x, y, w, h, rs)
+	if !collides {
+		rs = append(rs,
+			Room{
+				X: x,
+				Y: y,
+				W: w,
+				H: h,
+				N: len(rs),
+			},
+		)
 	}
+	return rs
 }
 
-func Room2Tiles(r *Room, ts *[]Tile) {
+func Room2Tiles(r *Room, ts []Tile) {
 	x := r.X
 	y := r.Y
 	w := r.W
@@ -85,7 +88,7 @@ func Room2Tiles(r *Room, ts *[]Tile) {
 	for xi := x; xi <= x+w; xi++ {
 		for yi := y; yi <= y+h; yi++ {
 			num := yi*TileDim + xi
-			(*ts)[num].T = 1
+			ts[num].T = 1
 		}
 	}
 }
@@ -107,30 +110,35 @@ func main() {
 	var v int = *vflag
 	fmt.Printf("Random seed: %v\n", v)
 	gen := ^uint32(v)
+	const NLEVELS = 100
+	const NROOMS = 99
+	const NTILES = 2500
+
 	ls := make([]Lev, 0, 100)
-	for i := 0; i < 100; i++ {
-		rs := make([]Room, 0, 100)
+	all_rooms := make([]Room, NROOMS*NLEVELS)
+	all_tiles := make([]Tile, NTILES*NLEVELS)
+
+	for i := 0; i < NLEVELS; i++ {
+
+		rs := all_rooms[i*NROOMS : (i+1)*NROOMS][:0]
 		for ii := 0; ii < 50000; ii++ {
-			MakeRoom(&rs, &gen)
-			if len(rs) == 99 {
+			rs = MakeRoom(rs, &gen)
+			if len(rs) == NROOMS {
 				break
 			}
 		}
-		ts := make([]Tile, 0, 2500)
-		for ii := 0; ii < 2500; ii++ {
-			t := Tile{X: ii % TileDim, Y: ii / TileDim, T: 0}
-			ts = append(ts, t)
+
+		ts := all_tiles[i*NTILES : (i+1)*NTILES][:0]
+		for ii := 0; ii < NTILES; ii++ {
+			ts = append(ts, Tile{X: ii % TileDim, Y: ii / TileDim, T: 0})
 		}
 		for _, r := range rs {
-			Room2Tiles(&r, &ts)
+			Room2Tiles(&r, ts)
 		}
-		var l Lev
-		l.rs = rs
-		l.ts = ts
-		ls = append(ls, l)
+		ls = append(ls, Lev{rs: rs, ts: ts})
 	}
 	templ := Lev{}
-	for i := 0; i < 100; i++ {
+	for i := 0; i < NLEVELS; i++ {
 		if len(ls[i].rs) > len(templ.rs) {
 			templ = ls[i]
 		}
