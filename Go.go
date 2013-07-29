@@ -65,8 +65,8 @@ func MakeRoom(rs []Room, gen *uint32) []Room {
 	if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
 		return rs
 	}
-	switch CheckColl(x, y, w, h, rs) {
-	case false:
+	collides := CheckColl(x, y, w, h, rs)
+	if !collides {
 		rs = append(rs,
 			Room{
 				X: x,
@@ -76,8 +76,6 @@ func MakeRoom(rs []Room, gen *uint32) []Room {
 				N: len(rs),
 			},
 		)
-	case true:
-		rs = MakeRoom(rs, gen)
 	}
 	return rs
 }
@@ -123,8 +121,11 @@ func main() {
 	for i := 0; i < NLEVELS; i++ {
 
 		rs := all_rooms[i*NROOMS : (i+1)*NROOMS][:0]
-		for ii := 0; ii < NROOMS; ii++ {
+		for ii := 0; ii < 50000; ii++ {
 			rs = MakeRoom(rs, &gen)
+			if len(rs) == NROOMS {
+				break
+			}
 		}
 
 		ts := all_tiles[i*NTILES : (i+1)*NTILES][:0]
