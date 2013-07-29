@@ -57,10 +57,12 @@ func CheckColl(x, y, w, h int, rs []Room) bool {
 }
 
 func MakeRoom(rs *[]Room, gen *uint32) {
-	x := GenRand(gen) % TileDim
-	y := GenRand(gen) % TileDim
-	w := GenRand(gen)%MaxWid + MinWid
-	h := GenRand(gen)%MaxWid + MinWid
+	r1 := GenRand(gen)
+	r2 := GenRand(gen)
+	x := r1%TileDim
+	y := r2%TileDim
+	w := r1%MaxWid + MinWid
+	h := r2%MaxWid + MinWid
 
 	if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
 		return
