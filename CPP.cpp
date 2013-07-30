@@ -159,10 +159,12 @@ public:
 private:
     void makeRoomSilentlyFail( Level & level )
     {
-        uint32_t x( nextRandomGenerator_() % TILE_DIM );
-        uint32_t y( nextRandomGenerator_() % TILE_DIM );
-        uint32_t w( (nextRandomGenerator_() % MAXWID) + MIW );
-        uint32_t h( (nextRandomGenerator_() % MAXWID) + MIW );
+        uint32_t r1 = nextRandomGenerator_();
+        uint32_t r2 = nextRandomGenerator_();
+        uint32_t x( r1 % TILE_DIM );
+        uint32_t y( r2 % TILE_DIM );
+        uint32_t w( (r1 % MAXWID) + MIW );
+        uint32_t h( (r2 % MAXWID) + MIW );
 
         if( (x+w) >= TILE_DIM || (y+h) >= TILE_DIM || x == 0 || y == 0 ) return;
 
