@@ -58,8 +58,8 @@ func CheckColl(x, y, w, h int, rs []Room) bool {
 func MakeRoom(rs *[]Room, gen *uint32) {
 	r1 := GenRand(gen)
 	r2 := GenRand(gen)
-	x := r1%TileDim
-	y := r2%TileDim
+	x := r1 % TileDim
+	y := r2 % TileDim
 	w := r1%MaxWid + MinWid
 	h := r2%MaxWid + MinWid
 
@@ -117,10 +117,9 @@ func main() {
 				break
 			}
 		}
-		ts := make([]Tile, 0, 2500)
+		ts := make([]Tile, 2500)
 		for ii := 0; ii < 2500; ii++ {
-			t := Tile{X: ii % TileDim, Y: ii / TileDim, T: 0}
-			ts = append(ts, t)
+			ts[ii] = Tile{X: ii % TileDim, Y: ii / TileDim, T: 0}
 		}
 		for _, r := range rs {
 			Room2Tiles(&r, &ts)
