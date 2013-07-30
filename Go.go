@@ -32,12 +32,13 @@ type Lev struct {
 }
 
 func GenRand(gen *uint32) int {
-	*gen += *gen
-	*gen ^= 1
-	if int32(*gen) < 0 {
-		*gen ^= 0x88888eef
-	}
 	a := *gen
+	a += a
+	a ^= 1
+	if int32(a) < 0 {
+		a ^= 0x88888eef
+	}
+	*gen = a
 	return int(a)
 }
 
