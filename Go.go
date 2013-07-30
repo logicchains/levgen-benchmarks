@@ -32,13 +32,12 @@ type Lev struct {
 }
 
 func GenRand(gen *uint32) int {
-	*gen += *gen
-	*gen ^= 1
-	if int32(*gen) < 0 {
-		*gen ^= 0x88888eef
+	seed := (*gen << 1) + 1
+	if int32(seed) < 0 {
+		seed ^= 0x88888eef
 	}
-	a := *gen
-	return int(a)
+	*gen = seed
+	return int(seed)
 }
 
 func CheckColl(x, y, w, h int, rs []Room) bool {
@@ -59,8 +58,8 @@ func CheckColl(x, y, w, h int, rs []Room) bool {
 func MakeRoom(rs *[]Room, gen *uint32) {
 	r1 := GenRand(gen)
 	r2 := GenRand(gen)
-	x := r1%TileDim
-	y := r2%TileDim
+	x := r1 % TileDim
+	y := r2 % TileDim
 	w := r1%MaxWid + MinWid
 	h := r2%MaxWid + MinWid
 
@@ -109,7 +108,7 @@ func main() {
 	var v int = *vflag
 	fmt.Printf("Random seed: %v\n", v)
 	gen := ^uint32(v)
-	ls := make([]Lev, 0, 100)
+	ls := make([]Lev, 100)
 	for i := 0; i < 100; i++ {
 		rs := make([]Room, 0, 100)
 		for ii := 0; ii < 50000; ii++ {
@@ -118,18 +117,14 @@ func main() {
 				break
 			}
 		}
-		ts := make([]Tile, 0, 2500)
+		ts := make([]Tile, 2500)
 		for ii := 0; ii < 2500; ii++ {
-			t := Tile{X: ii % TileDim, Y: ii / TileDim, T: 0}
-			ts = append(ts, t)
+			ts[ii] = Tile{X: ii % TileDim, Y: ii / TileDim, T: 0}
 		}
 		for _, r := range rs {
 			Room2Tiles(&r, &ts)
 		}
-		var l Lev
-		l.rs = rs
-		l.ts = ts
-		ls = append(ls, l)
+		ls[i] = Lev{rs: rs, ts: ts}
 	}
 	templ := Lev{}
 	for i := 0; i < 100; i++ {
