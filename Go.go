@@ -108,7 +108,7 @@ func main() {
 	var v int = *vflag
 	fmt.Printf("Random seed: %v\n", v)
 	gen := ^uint32(v)
-	ls := make([]Lev, 0, 100)
+	ls := make([]Lev, 100)
 	for i := 0; i < 100; i++ {
 		rs := make([]Room, 0, 100)
 		for ii := 0; ii < 50000; ii++ {
@@ -125,10 +125,7 @@ func main() {
 		for _, r := range rs {
 			Room2Tiles(&r, &ts)
 		}
-		var l Lev
-		l.rs = rs
-		l.ts = ts
-		ls = append(ls, l)
+		ls[i] = Lev{rs: rs, ts: ts}
 	}
 	templ := Lev{}
 	for i := 0; i < 100; i++ {
