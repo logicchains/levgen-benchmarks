@@ -58,10 +58,12 @@ int CheckColl(int x,int y,int w,int h, struct Room rs[100], int lenrs){
 }
 
 void MakeRoom(struct Room rs[100], int *lenrs,uint32_t *gen){
-	int x = GenRand(gen) % TileDim;
-	int y = GenRand(gen) % TileDim;
-	int w = GenRand(gen) % MaxWid+Miw;
-	int h = GenRand(gen) % MaxWid+Miw;
+	int r1 = GenRand(gen);
+	int r2 = GenRand(gen);
+	int x = r1 % TileDim;
+	int y = r2 % TileDim;
+	int w = r1 % MaxWid+Miw;
+	int h = r2 % MaxWid+Miw;
 
 	if(x+w>=TileDim || y+h>=TileDim || x==0 || y==0) return;
 	int nocrash = CheckColl(x,y,w,h,rs,*lenrs);
