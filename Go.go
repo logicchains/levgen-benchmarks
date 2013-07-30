@@ -32,14 +32,12 @@ type Lev struct {
 }
 
 func GenRand(gen *uint32) int {
-	a := *gen
-	a += a
-	a ^= 1
-	if int32(a) < 0 {
-		a ^= 0x88888eef
+	seed := (*gen << 1) + 1
+	if int32(seed) < 0 {
+		seed ^= 0x88888eef
 	}
-	*gen = a
-	return int(a)
+	*gen = seed
+	return int(seed)
 }
 
 func CheckColl(x, y, w, h int, rs []Room) bool {
