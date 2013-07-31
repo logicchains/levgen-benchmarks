@@ -13,17 +13,17 @@ const (
 )
 
 type Tile struct {
-	X int
-	Y int
+	X int32
+	Y int32
 	T int
 }
 
 type Room struct {
-	X int
-	Y int
-	W int
-	H int
-	N int
+	X int32
+	Y int32
+	W int32
+	H int32
+	N int32
 }
 
 type Lev struct {
@@ -31,16 +31,16 @@ type Lev struct {
 	rs []Room
 }
 
-func GenRand(gen *uint32) int {
+func GenRand(gen *uint32) int32 {
 	seed := (*gen << 1) + 1
 	if int32(seed) < 0 {
 		seed ^= 0x88888eef
 	}
 	*gen = seed
-	return int(seed)
+	return int32(seed)
 }
 
-func CheckColl(x, y, w, h int, rs []Room) bool {
+func CheckColl(x, y, w, h int32, rs []Room) bool {
 	var r *Room
 	for i := range rs {
 		r = &rs[i]
@@ -55,27 +55,31 @@ func CheckColl(x, y, w, h int, rs []Room) bool {
 	return false
 }
 
-func MakeRoom(rs *[]Room, gen *uint32) {
-	r1 := GenRand(gen)
-	r2 := GenRand(gen)
-	x := r1 % TileDim
-	y := r2 % TileDim
-	w := r1%MaxWid + MinWid
-	h := r2%MaxWid + MinWid
+func MakeRoom(count int32, gen *uint32) *[]Room {
+	rs := make([]Room, 100)
+	counter := int32(0)
+        for i := int32(0); i < count; i++ {
+		r1 := GenRand(gen)
+		r2 := GenRand(gen)
+		x := r1 % TileDim
+		y := r2 % TileDim
+		w := r1%MaxWid + MinWid
+		h := r2%MaxWid + MinWid
 
-	if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
-		return
+		if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
+			continue
+		}
+		iscrash := CheckColl(x, y, w, h, rs[0:counter])
+		if iscrash == false {
+			rs[counter] = Room{x,y,w,h,counter}
+			counter++
+		}
+		if counter == 99 {
+			break
+		}
 	}
-	iscrash := CheckColl(x, y, w, h, *rs)
-	if iscrash == false {
-		var r Room
-		r.X = x
-		r.Y = y
-		r.W = w
-		r.H = h
-		r.N = len(*rs)
-		*rs = append(*rs, r)
-	}
+	x := rs[0:counter]
+	return &x
 }
 
 func Room2Tiles(r *Room, ts *[]Tile) {
@@ -110,21 +114,15 @@ func main() {
 	gen := ^uint32(v)
 	ls := make([]Lev, 100)
 	for i := 0; i < 100; i++ {
-		rs := make([]Room, 0, 100)
-		for ii := 0; ii < 50000; ii++ {
-			MakeRoom(&rs, &gen)
-			if len(rs) == 99 {
-				break
-			}
-		}
+		rs := MakeRoom(50000, &gen)
 		ts := make([]Tile, 2500)
-		for ii := 0; ii < 2500; ii++ {
+		for ii := int32(0); ii < 2500; ii++ {
 			ts[ii] = Tile{X: ii % TileDim, Y: ii / TileDim, T: 0}
 		}
-		for _, r := range rs {
+		for _, r := range *rs {
 			Room2Tiles(&r, &ts)
 		}
-		ls[i] = Lev{rs: rs, ts: ts}
+		ls[i] = Lev{rs: *rs, ts: ts}
 	}
 	templ := Lev{}
 	for i := 0; i < 100; i++ {
