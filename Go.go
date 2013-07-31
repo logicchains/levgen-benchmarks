@@ -63,10 +63,12 @@ func MakeRoom(count uint32, gen *uint32) *[]Room {
 		r2 := GenRand(gen)
 		x := r1 % TileDim
 		y := r2 % TileDim
+		if x*y == 0 {
+			continue
+		}
 		w := r1 % MaxWid + MinWid
 		h := r2 % MaxWid + MinWid
-
-		if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
+		if x+w >= TileDim || y+h >= TileDim {
 			continue
 		}
 		iscrash := CheckColl(x, y, w, h, rs[0:counter])
