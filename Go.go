@@ -61,10 +61,10 @@ func MakeRoom(count uint32, gen *uint32) *[]Room {
         for i := uint32(0); i < count; i++ {
 		r1 := GenRand(gen)
 		r2 := GenRand(gen)
-		x := uint32(r1 % TileDim)
-		y := uint32(r2 % TileDim)
-		w := uint32(r1%MaxWid + MinWid)
-		h := uint32(r2%MaxWid + MinWid)
+		x := r1 % TileDim
+		y := r2 % TileDim
+		w := r1 % MaxWid + MinWid
+		h := r2 % MaxWid + MinWid
 
 		if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
 			continue
