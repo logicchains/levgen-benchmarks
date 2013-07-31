@@ -13,17 +13,17 @@ const (
 )
 
 type Tile struct {
-	X int32
-	Y int32
-	T int
+	X uint32
+	Y uint32
+	T uint32
 }
 
 type Room struct {
-	X int32
-	Y int32
-	W int32
-	H int32
-	N int32
+	X uint32
+	Y uint32
+	W uint32
+	H uint32
+	N uint32
 }
 
 type Lev struct {
@@ -31,16 +31,16 @@ type Lev struct {
 	rs []Room
 }
 
-func GenRand(gen *uint32) int32 {
+func GenRand(gen *uint32) uint32 {
 	seed := (*gen << 1) + 1
 	if int32(seed) < 0 {
 		seed ^= 0x88888eef
 	}
 	*gen = seed
-	return int32(seed)
+	return uint32(seed)
 }
 
-func CheckColl(x, y, w, h int32, rs []Room) bool {
+func CheckColl(x, y, w, h uint32, rs []Room) bool {
 	var r *Room
 	for i := range rs {
 		r = &rs[i]
@@ -55,16 +55,16 @@ func CheckColl(x, y, w, h int32, rs []Room) bool {
 	return false
 }
 
-func MakeRoom(count int32, gen *uint32) *[]Room {
+func MakeRoom(count uint32, gen *uint32) *[]Room {
 	rs := make([]Room, 100)
-	counter := int32(0)
-        for i := int32(0); i < count; i++ {
+	counter := uint32(0)
+        for i := uint32(0); i < count; i++ {
 		r1 := GenRand(gen)
 		r2 := GenRand(gen)
-		x := r1 % TileDim
-		y := r2 % TileDim
-		w := r1%MaxWid + MinWid
-		h := r2%MaxWid + MinWid
+		x := uint32(r1 % TileDim)
+		y := uint32(r2 % TileDim)
+		w := uint32(r1%MaxWid + MinWid)
+		h := uint32(r2%MaxWid + MinWid)
 
 		if x+w >= TileDim || y+h >= TileDim || x == 0 || y == 0 {
 			continue
@@ -116,7 +116,7 @@ func main() {
 	for i := 0; i < 100; i++ {
 		rs := MakeRoom(50000, &gen)
 		ts := make([]Tile, 2500)
-		for ii := int32(0); ii < 2500; ii++ {
+		for ii := uint32(0); ii < 2500; ii++ {
 			ts[ii] = Tile{X: ii % TileDim, Y: ii / TileDim, T: 0}
 		}
 		for _, r := range *rs {
