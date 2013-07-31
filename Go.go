@@ -15,7 +15,7 @@ const (
 type Tile struct {
 	X int32
 	Y int32
-	T int
+	T int32
 }
 
 type Room struct {
