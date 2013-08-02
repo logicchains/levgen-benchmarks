@@ -60,10 +60,12 @@ int CheckColl(in int x, in int y, in int w, in int h,
 }
 
 void MakeRoom(ref Room rs[100], int* lenrs, uint* gen) pure nothrow {
-    immutable int x = GenRand(gen) % TileDim;
-    immutable int y = GenRand(gen) % TileDim;
-    immutable int w = GenRand(gen) % MaxWid + Miw;
-    immutable int h = GenRand(gen) % MaxWid + Miw;
+    immutable int r1 = GenRand(gen);
+    immutable int r2 = GenRand(gen);
+    immutable int x = r1 % TileDim;
+    immutable int y = r2 % TileDim;
+    immutable int w = r1 % MaxWid+Miw;
+    immutable int h = r2 % MaxWid+Miw;
 
     if (x + w >= TileDim || y + h >= TileDim || x == 0 || y == 0)
         return;
