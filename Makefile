@@ -26,12 +26,12 @@ clang: C.c
 
 gxx: CPP.cpp
 	@echo ""
-	g++ -o run-gxx -O3 CPP.cpp
+	g++ --std=c++11 -o run-gxx -O3 CPP.cpp
 	time (./run-gxx 1234 &> /dev/null)
 
 clangxx: CPP.cpp
 	@echo ""
-	clang++ -o run-clangxx -O3 CPP.cpp
+	clang++ --std=c++11 -o run-clangxx -O3 CPP.cpp
 	time (./run-clangxx 1234 &> /dev/null)
 
 clean:
