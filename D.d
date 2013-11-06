@@ -1,151 +1,125 @@
 // Compile with:
-// ldmd2 -noruntime -release -inline -O -noboundscheck bench2.d
+// ldc2 -O5 -check-printf-calls -fdata-sections -ffunction-sections -release -singleobj -strip-debug -wi -L=--gc-sections -L=-s  D.d
 
-import core.stdc.stdio, core.stdc.stdlib;
+@safe:
+import std.conv, std.stdio;
 
-enum int TileDim = 50;
-enum int Miw = 2;
-enum int MaxWid = 8;
+enum LEVEL_SIZE     =  50;   /// Width and height of a level
+enum ROOMS          = 100;   /// Maximum number of rooms in a level
+enum ROOM_SIZE_BASE =   2;   /// Rooms will be at least this value plus one in size.
+enum ROOM_SIZE_MOD  =   8;   /// Random additional room size: [0 .. ROOM_SIZE_MOD)
 
 struct Tile {
-    int X = void;
-    int Y = void;
-    int T = void;
+	uint x;
+	uint y;
+	uint t;
 }
 
 struct Room {
-    int X = void;
-    int Y = void;
-    int W = void;
-    int H = void;
-    int N = void;
+	uint   x;
+	uint   y;
+	uint   w;
+	uint   h;
+	size_t number;
 }
 
-struct Lev {
-    Tile[2500] ts = void;
-    Room[100] rs = void;
-    int lenrs = void;
+struct Level {
+	Tile[LEVEL_SIZE ^^ 2] tiles   = void;
+	Room[ROOMS]           rooms   = void;
+	size_t                roomCnt = 0;
+
+	void makeRoom(ref Random rnd) nothrow {
+		immutable r1 = rnd.next();
+		immutable r2 = rnd.next();
+
+		immutable x = r1 % LEVEL_SIZE;
+		immutable y = r2 % LEVEL_SIZE;
+		if (x == 0 || y == 0) return;
+		
+		immutable w = ROOM_SIZE_BASE + r1 % ROOM_SIZE_MOD;
+		immutable h = ROOM_SIZE_BASE + r2 % ROOM_SIZE_MOD;
+		if (x + w >= LEVEL_SIZE || y + h >= LEVEL_SIZE) return;
+		if (checkColl( x, y, w, h )) return;
+
+		Room* r = &this.rooms[this.roomCnt];
+		r.number = this.roomCnt++;
+		r.x = x;
+		r.y = y;
+		r.w = w;
+		r.h = h;
+	}
+
+	/// Returns true, when the given area collides with existing rooms.
+	bool checkColl(in uint x, in uint y, in uint w, in uint h) const pure nothrow {
+		foreach (ref r; this.rooms[0 .. this.roomCnt]) {
+			if (r.x + r.w + 1 >= x && r.x <= x + w + 1 && r.y + r.h + 1 >= y && r.y <= y + h + 1) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/// Initializes and then builds the tiles from the room definitions.
+	void buildTiles() pure nothrow {
+		foreach (uint i; 0 .. this.tiles.length) {
+			this.tiles[i].x = i % LEVEL_SIZE;
+			this.tiles[i].y = i / LEVEL_SIZE;
+			this.tiles[i].t = 0;
+		}
+		foreach (ref r; this.rooms[0 .. this.roomCnt]) {
+			foreach (xi; r.x .. r.x + r.w + 1)
+			foreach (yi; r.y .. r.y + r.h + 1) {
+				this.tiles[yi * LEVEL_SIZE + xi].t = 1;
+			}
+		}
+	}
+
+	void dump() const @trusted {
+		foreach (row; 0 .. LEVEL_SIZE) {
+			immutable offset = LEVEL_SIZE * row;
+			foreach (col; 0 .. LEVEL_SIZE) {
+				write( this.tiles[offset + col].t );
+			}
+			writeln();
+		}
+	}
 }
 
-int GenRand(uint* gen) pure nothrow {
-    *gen += *gen;
-    *gen ^= 1;
-    int tgen = *gen;
-    if (tgen < 0) {
-        *gen ^= 0x88888eef;
-    }
-    int a = *gen;
-    return a;
+struct Random {
+	uint current;
+
+	uint next() nothrow {
+		current += current;
+		current ^= (current > int.max) ? 0x88888eee : 1;
+		return current;
+	}
 }
 
-int CheckColl(in int x, in int y, in int w, in int h,
-              in ref Room[100] rs, in int lenrs) pure nothrow {
-    for (int i = 0; i < lenrs; i++) {
-        int rx = rs[i].X;
-        int ry = rs[i].Y;
-        int rw = rs[i].W;
-        int rh = rs[i].H;
-        int RoomOkay = void;
-        if ((rx + rw + 1) < x || rx > (x + w + 1)) {
-            RoomOkay = 1;
-        } else if ((ry + rh + 1) < y || ry > (y + h + 1)) {
-            RoomOkay = 1;
-        } else {
-            RoomOkay = 0;
-        }
-        if (RoomOkay == 0)
-            return 1;
-    }
-    return 0;
-}
+void main(string[] args) @system {
+	// Create a local random number generator
+	immutable seed = (args.length > 1) ? args[1].to!uint() : 123;
+	writefln( "The random seed is: %s", seed );
+	auto rnd = Random( seed );
 
-void MakeRoom(ref Room rs[100], int* lenrs, uint* gen) pure nothrow {
-    immutable int r1 = GenRand(gen);
-    immutable int r2 = GenRand(gen);
-    immutable int x = r1 % TileDim;
-    immutable int y = r2 % TileDim;
-    immutable int w = r1 % MaxWid+Miw;
-    immutable int h = r2 % MaxWid+Miw;
+	// Create several levels for benchmarking purposes
+	Level[100] levels;
 
-    if (x + w >= TileDim || y + h >= TileDim || x == 0 || y == 0)
-        return;
-    immutable int nocrash = CheckColl(x, y, w, h, rs, *lenrs);
-    if (nocrash == 0) {
-        Room r = void;
-        r.X = x;
-        r.Y = y;
-        r.W = w;
-        r.H = h;
-        r.N = *lenrs;
-        rs[*lenrs] = r;
-        *lenrs = *lenrs + 1;
-    }
-}
+	foreach (levelIdx, ref level; levels) with (level) {
+		foreach (i; 0 .. 50_000) {
+			level.makeRoom(rnd);
+			if (level.roomCnt == ROOMS) {
+				break;
+			}
+		}
+		level.buildTiles();
+	}
 
-void Room2Tiles(in Room* r, ref Tile ts[2500]) pure nothrow {
-    immutable x = r.X;
-    immutable y = r.Y;
-    immutable w = r.W;
-    immutable h = r.H;
-    for (int xi = x; xi <= x + w; xi++) {
-        for (int yi = y; yi <= y + h; yi++) {
-            int num = yi * TileDim + xi;
-            ts[num].T = 1;
-        }
-    }
-}
-
-void PrintLev(in Lev* l) nothrow {
-    for (int i = 0; i < 2500; i++) {
-        printf("%d", l.ts[i].T);
-        if (i % (TileDim) == 49 && i != 0)
-            printf("\n");
-    }
-}
-
-void main(string[] args) nothrow {
-    int v = atoi(args[1].ptr);
-    printf("The random seed is: %d \n", v);
-    srand(v);
-    uint gen = v;
-    uint *Pgen = &gen;
-    Lev[100] ls = void;
-
-    int lenLS = 0;
-    for (int i = 0; i < 100; i++) {
-        Room rs[100] = void;
-        int lenrs = 0;
-        int *Plenrs = &lenrs;
-        int ii = void;
-        for (ii = 0; ii < 50000; ii++) {
-            MakeRoom(rs, Plenrs, Pgen);
-            if (lenrs == 99) {
-                break;
-            }
-        }
-        Tile[2500] ts = void;
-        for (ii = 0; ii < 2500; ii++) {
-            ts[ii].X = ii % TileDim;
-            ts[ii].Y = ii / TileDim;
-            ts[ii].T = 0;
-        }
-        for (ii = 0; ii < lenrs; ii++) {
-            Room2Tiles(&(rs[ii]), ts);
-        }
-        Lev l = void;
-        l.rs = rs;
-        l.ts = ts;
-        l.lenrs = lenrs;
-        ls[lenLS] = l;
-        lenLS++;
-    }
-
-    Lev templ = void;
-    templ.lenrs = 0;
-    for (int i = 0; i < 100; i++) {
-        if (ls[i].lenrs > templ.lenrs)
-            templ = ls[i];
-    }
-
-    PrintLev(&templ);
+	// Select the level with the most rooms for printing
+	Level* levelToPrint = &levels[0];
+	foreach (ref level; levels[1 .. $]) {
+		if (level.roomCnt > levelToPrint.roomCnt) {
+			levelToPrint = &level;
+		}
+	}
+	levelToPrint.dump();
 }
